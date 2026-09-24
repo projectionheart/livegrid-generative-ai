@@ -1,5 +1,14 @@
 (()=>{'use strict';const $=id=>document.getElementById(id);let base='',token='',connected=false,engine=false,session=0,polling=false,sending=false,pending={},imageURL=null;const state={freeze:false,blackout:false,calibrate:false,x:.5,y:.5};
 const local=location.protocol==='http:';if(local)$('address').value=location.origin;
+function bridgeURL(raw){
+ let value=String(raw||'').trim().replace(/^["“”']+|["“”']+$/g,'').trim();
+ if(!value&&local)value=location.origin;
+ if(!value)throw Error('Enter your computer’s bridge address, or open the phone link from the bridge window.');
+ if(!/^[a-z][a-z0-9+.-]*:\/\//i.test(value))value='http://'+value;
+ let url;try{url=new URL(value)}catch{throw Error('That address was not recognized. Use an address like http://192.168.1.10:8780');}
+ if(!['http:','https:'].includes(url.protocol)||url.username||url.password||!['/','/index.html'].includes(url.pathname)||url.search||url.hash)throw Error('Use only the bridge address, such as http://192.168.1.10:8780');
+ return url;
+}
 function paint(data){Object.assign(state,data);for(const k of ['freeze','blackout','calibrate'])$(k).setAttribute('aria-pressed',state[k]);for(const k of ['speed','brightness','gap','x','y']){if(data[k]!==undefined&&document.activeElement!==$(k)){$(k).value=data[k];$(k+'Value').textContent=Number(data[k]).toFixed(k==='gap'?0:2)}}if(data.layout&&document.activeElement!==$('layout'))$('layout').value=data.layout;$('dot').style.left=state.x*100+'%';$('dot').style.top=(1-state.y)*100+'%'}
 function enabled(){for(const id of ['apply','speed','brightness','gap','layout','freeze','blackout','calibrate'])$(id).disabled=connected&&!engine;document.querySelectorAll('[data-preset]').forEach(b=>b.disabled=connected&&!engine)}
 async function request(path,body){const r=await fetch(base+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(5000),cache:'no-store',credentials:'omit'});if(!r.ok){let b;try{b=await r.json()}catch{}throw Error(b?.error||'Bridge request failed: '+r.status)}return r}
@@ -7,7 +16,17 @@ function stop(message){session++;connected=false;engine=false;token='';pending={
 async function send(data){if(!connected){paint(data);$('status').textContent='Demo mode · controls are simulated';return}Object.assign(pending,data);if(sending)return;sending=true;const current=session;try{while(Object.keys(pending).length&&current===session){const next=pending;pending={};await request('/api/control',next);if(current===session){paint(next);$('error').textContent=''}}}catch(e){if(current===session){$('error').textContent=e.message;stop('Connection lost · reconnect before performing')}}finally{sending=false}}
 async function refresh(){if(!connected||polling)return;polling=true;const current=session;try{const info=await(await request('/api/status')).json();if(current!==session)return;engine=!!info.engine;enabled();$('status').textContent=engine?'Connected · '+info.engine.status.ai+' · AI '+info.engine.status.ai_fps+' fps':'Bridge connected · XY only';$('error').textContent=info.engine?.status.error||info.engine_error||'';if(!sending&&!Object.keys(pending).length)paint({...info.engine?.settings,...info.xy});if(engine){try{const blob=await(await request('/api/preview')).blob();if(current!==session)return;const url=URL.createObjectURL(blob);if(imageURL)URL.revokeObjectURL(imageURL);imageURL=url;$('preview').src=url;$('preview').hidden=false;$('demo').hidden=true;$('caption').textContent='LIVEGRID PREVIEW · '+info.osc}catch{$('preview').hidden=true;$('demo').hidden=false;$('caption').textContent='PREVIEW UNAVAILABLE · DEMO VISUAL'}}else{$('preview').hidden=true;$('demo').hidden=false;$('caption').textContent='AI ENGINE OFFLINE · DEMO VISUAL'}}catch(e){if(current===session){$('error').textContent=e.message;stop('Disconnected · reconnect to continue')}}finally{polling=false}}
 // Capture the key before resetting a previous connection. Never persist it or place it in a URL.
-$('connect').onclick=async()=>{const key=$('key').value.trim();try{const url=new URL($('address').value);if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.pathname!=='/'||url.search||url.hash)throw Error('Use only the bridge address, such as http://192.168.1.10:8780');if(location.protocol==='https:'&&url.protocol==='http:'){location.assign(url.origin);return}if(!key)throw Error('Enter the pairing key from the bridge window');stop();base=url.origin;token=key;connected=true;$('error').textContent='';await refresh();if(connected){const info=await(await request('/api/status')).json();if(info.engine)$('prompt').value=info.engine.settings.prompt;$('pairing').open=false}}catch(e){stop('Not connected · check address and key');$('error').textContent=e.message}};
+$('connect').onclick=async()=>{
+ const key=$('key').value.trim();
+ let url;
+ try{url=bridgeURL($('address').value);$('address').value=url.origin;
+  if(location.protocol==='https:'&&url.protocol==='http:'){location.assign(url.origin);return}
+  if(!key)throw Error('Enter the pairing key from the bridge window');
+ }catch(e){$('error').textContent=e.message;return}
+ stop();base=url.origin;token=key;connected=true;$('error').textContent='';
+ try{await refresh();if(connected){const info=await(await request('/api/status')).json();if(info.engine)$('prompt').value=info.engine.settings.prompt;$('pairing').open=false}}
+ catch(e){stop('Not connected · check address and key');$('error').textContent=e.message}
+};
 $('disconnect').onclick=()=>stop();$('apply').onclick=()=>{const p=$('prompt').value.trim();if(!p){$('error').textContent='Enter a prompt first';return}send({prompt:p})};document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{$('prompt').value=b.dataset.preset;send({prompt:b.dataset.preset})});
 for(const k of ['speed','brightness','gap']){$(k).oninput=()=>$(k+'Value').textContent=$(k).value;$(k).onchange=()=>send({[k]:Number($(k).value)})}$('layout').onchange=()=>send({layout:$('layout').value});for(const k of ['freeze','blackout','calibrate'])$(k).onclick=()=>send({[k]:!state[k]});
 let xyTimer;function xy(x,y){paint({x:Math.max(0,Math.min(1,x)),y:Math.max(0,Math.min(1,y))});if(!xyTimer)xyTimer=setTimeout(()=>{xyTimer=null;send({x:state.x,y:state.y})},60)}

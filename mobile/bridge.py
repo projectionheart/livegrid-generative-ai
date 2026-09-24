@@ -133,13 +133,13 @@ if __name__ == '__main__':
     p.add_argument('--public-origin', help='Optional HTTPS tunnel origin (no trailing slash)')
     a = p.parse_args()
     server = make_server('0.0.0.0' if a.lan else '127.0.0.1', a.port, osc_port=a.osc_port, public_origin=a.public_origin)
-    print('LiveGrid Mobile bridge — keep this window open', flush=True)
+    print('LiveGrid Mobile bridge - keep this window open', flush=True)
     print('Pairing key (private, changes on restart): ' + server.token, flush=True)
     print('Computer controller: http://127.0.0.1:' + str(a.port), flush=True)
     if a.lan:
         for ip in sorted(set(socket.gethostbyname_ex(socket.gethostname())[2])):
             if not ip.startswith('127.'): print('Possible phone address: http://' + ip + ':' + str(a.port), flush=True)
-    print('OSC → localhost:' + str(a.osc_port) + ' | Ctrl+C stops this add-on', flush=True)
+    print('OSC -> localhost:' + str(a.osc_port) + ' | Ctrl+C stops this add-on', flush=True)
     try: server.serve_forever()
     except KeyboardInterrupt: pass
     finally: server.server_close(); server.udp.close()
