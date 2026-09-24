@@ -1,0 +1,6 @@
+models/
+.venv/
+__pycache__/
+settings.json
+settings.tmp
+*.log
