@@ -2,6 +2,14 @@
 
 LiveGrid generates evolving imagery from a text prompt on a local NVIDIA GPU, composes it into 100 squares, and sends a live Spout feed to visual-performance software.
 
+**Powered by Stability AI.** See `STABILITY-AI-LICENSE.md` and `NOTICE.txt` for the model's terms and attribution.
+
+## Optional model download for offline use
+
+The [model release](https://github.com/projectionheart/livegrid-generative-ai/releases/tag/sd-turbo-fp16-v1) contains three archives: `sd-turbo-unet.zip`, `sd-turbo-text-encoder.zip`, and `sd-turbo-config-and-vae.zip`. Download all three and extract them into the LiveGrid folder, merging their `models/sd-turbo/` directories. Do not add another enclosing folder. Restart LiveGrid; it will load this local model instead of downloading it from Hugging Face. Python dependencies must still be installed separately.
+
+All three tensor files were SHA-256 verified against the original upstream revision `b261bac6fd2cf515557d5d0707481eafa0485ec2`. These are pretrained weights, not a model trained on your prompts or personal data. No user settings, generated images, local caches, or credentials are included in the model archives. Original developer filesystem paths in configuration metadata were replaced with the public model identifier. `MODEL-MANIFEST.json` lists file and archive hashes. This verifies the distributed files' provenance; it is not an audit of the original model's training data.
+
 ## Current status
 
 - Tested on this Windows laptop: SD-Turbo inference, the browser control panel, and successful Spout sender calls.

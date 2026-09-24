@@ -49,7 +49,9 @@ def generate():
         from diffusers import AutoPipelineForText2Image
         if not torch.cuda.is_available(): raise RuntimeError('NVIDIA CUDA is unavailable. Check the NVIDIA driver.')
         with lock: status['ai']='Loading SD-Turbo (first launch downloads model)'
-        pipe=AutoPipelineForText2Image.from_pretrained('stabilityai/sd-turbo',torch_dtype=torch.float16,variant='fp16',use_safetensors=True).to('cuda')
+        local_model=ROOT/'models/sd-turbo'
+        model_source=str(local_model) if (local_model/'model_index.json').exists() else 'stabilityai/sd-turbo'
+        pipe=AutoPipelineForText2Image.from_pretrained(model_source,torch_dtype=torch.float16,variant='fp16',use_safetensors=True,local_files_only=local_model.exists()).to('cuda')
         pipe.set_progress_bar_config(disable=True)
         rng=torch.Generator(device='cuda').manual_seed(240923)
         a=torch.randn((1,4,64,64),generator=rng,device='cuda',dtype=torch.float16)

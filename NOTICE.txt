@@ -1,0 +1,5 @@
+This Stability AI Model is licensed under the Stability AI Community License, Copyright © Stability AI Ltd. All Rights Reserved.
+
+Powered by Stability AI.
+Weights are unchanged from stabilityai/sd-turbo at revision b261bac6fd2cf515557d5d0707481eafa0485ec2.
+Packaging change: original developer filesystem paths in configuration metadata were replaced with the public model identifier. Tensor weights were not modified or fine-tuned.

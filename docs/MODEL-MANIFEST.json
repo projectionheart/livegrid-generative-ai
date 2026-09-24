@@ -1,0 +1,38 @@
+{
+  "model": "stabilityai/sd-turbo",
+  "revision": "b261bac6fd2cf515557d5d0707481eafa0485ec2",
+  "files": [
+    {
+      "path": "models/sd-turbo/text_encoder/model.fp16.safetensors",
+      "sha256": "bc1827c465450322616f06dea41596eac7d493f4e95904dcb51f0fc745c4e13f",
+      "upstream_verified": true
+    },
+    {
+      "path": "models/sd-turbo/unet/diffusion_pytorch_model.fp16.safetensors",
+      "sha256": "40ec400881e27d1376c7c95c5bd495f407b33756e80eb6365e301c33a07af6e5",
+      "upstream_verified": true
+    },
+    {
+      "path": "models/sd-turbo/vae/diffusion_pytorch_model.fp16.safetensors",
+      "sha256": "3e4c08995484ee61270175e9e7a072b66a6e4eeb5f0c266667fe1f45b90daf9a",
+      "upstream_verified": true
+    }
+  ],
+  "archives": [
+    {
+      "name": "sd-turbo-config-and-vae.zip",
+      "bytes": 168975555,
+      "sha256": "9fb67e60f784477fc8b6783a0998b52ae07cfcb703e4dc3b4e497a2ece6201d8"
+    },
+    {
+      "name": "sd-turbo-text-encoder.zip",
+      "bytes": 680833893,
+      "sha256": "3a261d5d891e345ca26eb16ab1129e8a11860cb45a0fffaf562f799b279be39c"
+    },
+    {
+      "name": "sd-turbo-unet.zip",
+      "bytes": 1731919498,
+      "sha256": "26007be584b67f9921ec4f092bcd780b15c0279748bfa34fd17c87a97150a78b"
+    }
+  ]
+}
